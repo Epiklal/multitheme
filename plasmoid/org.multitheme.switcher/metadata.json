@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "ketchupboy"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Switch, create and rename multitheme worlds",
+        "Description[de]": "Plasma-Welten wechseln, anlegen und umbenennen",
+        "Icon": "preferences-desktop-theme-global",
+        "Id": "org.multitheme.switcher",
+        "License": "GPL-2.0+",
+        "Name": "Multitheme",
+        "Version": "1.1"
+    },
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}
