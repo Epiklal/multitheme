@@ -54,8 +54,13 @@ Eingriff wird ein Backup unter `~/.local/share/multitheme/original-backup.tar.gz
 Das Skript liegt im Widget unter
 `~/.local/share/plasma/plasmoids/org.multitheme.switcher/contents/code/multitheme`.
 `python3 …/multitheme install` legt `~/.local/bin/multitheme` und einen
-Menüeintrag an. Befehle: `list`, `switch NAME`, `new NAME [--frisch]`,
+Menüeintrag an. Befehle: `list`, `switch NAME`, `new NAME [--fresh]`,
 `rename ALT NEU`, `delete NAME`, `save`, `next`.
+
+## Sprache
+
+Widget, Meldungen und Menü folgen der Systemsprache von Plasma: Englisch,
+Deutsch und Französisch. Übersetzungen liegen in `po/` – `./build.sh` kompiliert sie mit.
 
 ## Selbst bauen
 
@@ -77,6 +82,10 @@ screen, GTK/Kvantum styling, Konsole profiles and autostart entries.
 - Rename and delete worlds
 - A backup of your original configuration is created before the first change
 - Optional command line tool (`multitheme list / switch / new / next …`)
+- Widget, notifications and menu follow your Plasma system language: English,
+  German and French (translations in `po/`, more are welcome)
+- Switching restarts the Plasma shell for a few seconds (panels disappear and
+  come back); a notification announces it
 
 Install: download `multitheme.plasmoid` from the
 [releases](../../releases/latest), then right-click the panel → *Add Widgets* →

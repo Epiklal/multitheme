@@ -20,7 +20,7 @@ PlasmoidItem {
 
     Plasmoid.icon: "preferences-desktop-theme-global"
     toolTipMainText: "Multitheme"
-    toolTipSubText: activeWorld ? "Aktive Welt: " + activeWorld : "Noch keine Welt angelegt"
+    toolTipSubText: activeWorld ? i18n("Active world: %1", activeWorld) : i18n("No world created yet")
 
     function quote(s) {
         return "'" + s.replace(/'/g, "'\\''") + "'"
@@ -77,7 +77,7 @@ PlasmoidItem {
 
     function switchTo(name) {
         if (name === activeWorld || busyText) return
-        detached("switch " + quote(name), "Wechsle zu „" + name + "“ …")
+        detached("switch " + quote(name), i18n("Switching to “%1” …", name))
     }
 
     function create(name, fresh) {
@@ -85,10 +85,10 @@ PlasmoidItem {
         if (!name || busyText) return
         if (worlds.length === 0) {
             // Erster Start: der jetzige Desktop wird zur ersten Welt
-            detached("init " + quote(name), "Speichere aktuellen Desktop als „" + name + "“ …")
+            detached("init " + quote(name), i18n("Saving current desktop as “%1” …", name))
             return
         }
-        detached("new " + quote(name) + (fresh ? " --frisch" : ""), "Lege „" + name + "“ an …")
+        detached("new " + quote(name) + (fresh ? " --fresh" : ""), i18n("Creating “%1” …", name))
     }
 
     function rename(oldName, newName) {
@@ -114,12 +114,12 @@ PlasmoidItem {
                 Kirigami.Heading {
                     Layout.fillWidth: true
                     level: 1
-                    text: "Welten"
+                    text: i18n("Worlds")
                 }
                 PlasmaComponents3.ToolButton {
                     icon.name: "view-refresh"
                     onClicked: root.refresh()
-                    PlasmaComponents3.ToolTip { text: "Neu laden" }
+                    PlasmaComponents3.ToolTip { text: i18n("Reload") }
                 }
             }
         }
@@ -191,7 +191,7 @@ PlasmoidItem {
                                         renameField.selectAll()
                                     }
                                 }
-                                PlasmaComponents3.ToolTip { text: row.editing ? "Übernehmen" : "Umbenennen" }
+                                PlasmaComponents3.ToolTip { text: row.editing ? i18n("Apply") : i18n("Rename") }
                             }
                         }
                     }
@@ -201,8 +201,8 @@ PlasmoidItem {
                         width: parent.width - Kirigami.Units.gridUnit * 2
                         visible: list.count === 0
                         iconName: "preferences-desktop-theme-global"
-                        text: "Noch keine Welten"
-                        explanation: "Gib unten einen Namen ein – dein jetziger Desktop wird zur ersten Welt."
+                        text: i18n("No worlds yet")
+                        explanation: i18n("Enter a name below – your current desktop becomes the first world.")
                     }
                 }
             }
@@ -220,7 +220,7 @@ PlasmoidItem {
             PlasmaComponents3.TextField {
                 id: newName
                 Layout.fillWidth: true
-                placeholderText: root.worlds.length ? "Name der neuen Welt" : "Name für deinen jetzigen Desktop"
+                placeholderText: root.worlds.length ? i18n("Name of the new world") : i18n("Name for your current desktop")
                 enabled: !root.busyText
                 onAccepted: root.create(text, false)
             }
@@ -230,21 +230,21 @@ PlasmoidItem {
                 PlasmaComponents3.Button {
                     Layout.fillWidth: true
                     icon.name: root.worlds.length ? "edit-copy" : "document-save"
-                    text: root.worlds.length ? "Kopie" : "Als erste Welt speichern"
+                    text: root.worlds.length ? i18n("Copy") : i18n("Save as first world")
                     enabled: newName.text.trim() !== "" && !root.busyText
                     onClicked: root.create(newName.text, false)
                     PlasmaComponents3.ToolTip {
-                        text: root.worlds.length ? "Neue Welt als Kopie der aktuellen" : "Der jetzige Desktop wird deine erste Welt"
+                        text: root.worlds.length ? i18n("New world as a copy of the current one") : i18n("Your current desktop becomes your first world")
                     }
                 }
                 PlasmaComponents3.Button {
                     Layout.fillWidth: true
                     visible: root.worlds.length > 0
                     icon.name: "list-add"
-                    text: "Frisch"
+                    text: i18n("Fresh")
                     enabled: newName.text.trim() !== "" && !root.busyText
                     onClicked: root.create(newName.text, true)
-                    PlasmaComponents3.ToolTip { text: "Neue Welt mit frischem Standard-Plasma" }
+                    PlasmaComponents3.ToolTip { text: i18n("New world with a fresh default Plasma") }
                 }
             }
         }

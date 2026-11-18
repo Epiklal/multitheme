@@ -1,31 +1,34 @@
 #!/usr/bin/env python3
-"""multitheme – mehrere komplette Plasma-Welten, zwischen denen du umschaltest.
+"""multitheme – several complete Plasma worlds you can switch between.
 
-Jede Welt hat ihre eigenen Panels, Widgets, Hintergründe, Farben, Icons,
-Fensterdeko, Kvantum/GTK-Stil, Sperrbildschirm, Terminal-Setup (Konsole,
-kitty, fastfetch) und Autostart. Beim Wechsel wird der Stand der aktuellen
-Welt automatisch gesichert – Änderungen gehen also nie verloren.
+Each world has its own panels, widgets, wallpapers, colors, icons, window
+decoration, Kvantum/GTK style, lock screen, terminal setup (Konsole, kitty,
+fastfetch) and autostart. When switching, the current world is saved
+automatically – changes are never lost.
 
-    multitheme                        Auswahlmenü (kdialog)
-    multitheme init NAME              aktuellen Desktop als erste Welt benennen
-    multitheme new NAME [--frisch [GLOBALTHEME]]
-                                      neue Welt anlegen und hinwechseln:
-                                      Kopie der aktuellen, oder mit --frisch
-                                      ein komplett neues Plasma (Standard-
-                                      Layout eines Global Themes)
-    multitheme switch NAME            zu einer Welt wechseln
-    multitheme next                   zur nächsten Welt (für ein Tastenkürzel)
-    multitheme rename ALT NEU         Welt umbenennen
-    multitheme save                   aktuelle Welt jetzt sichern
+    multitheme                        selection menu (kdialog)
+    multitheme init NAME              name the current desktop as the first world
+    multitheme new NAME [--fresh [GLOBALTHEME]]
+                                      create a new world and switch to it:
+                                      a copy of the current one, or with --fresh
+                                      a completely new Plasma (default layout
+                                      of a global theme)
+    multitheme switch NAME            switch to a world
+    multitheme next                   go to the next world (for a shortcut)
+    multitheme rename OLD NEW         rename a world
+    multitheme save                   save the current world now
     multitheme list | delete NAME | install
 
-'install' richtet auch das Panel-Widget "Multitheme" ein (wechseln, anlegen,
-umbenennen per Klick). Es wird in jeder Welt einmal automatisch ins Panel
-gesetzt; entfernst du es dort, bleibt es weg.
+'install' also sets up the panel widget "Multitheme" (switch, create, rename
+with a click). It is added to the panel once per world; if you remove it
+there, it stays gone.
 
-Weitere Pfade pro Welt: eine Zeile pro Pfad in ~/.config/multitheme/extra-paths
-(relativ zu ~, z. B. ".config/fish/conf.d/farben.fish").
+More paths per world: one line per path in ~/.config/multitheme/extra-paths
+(relative to ~, e.g. ".config/fish/conf.d/colors.fish").
+
+Messages follow the system language (English, German, French).
 """
+import gettext
 import glob
 import os
 import shutil
@@ -48,6 +51,10 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 WIDGET_SRC = SCRIPT_DIR.parents[1] if SCRIPT_DIR.name == "code" else SCRIPT_DIR / "plasmoid" / WIDGET_ID
 WIDGET_DIRS = [HOME / ".local/share/plasma/plasmoids", Path("/usr/share/plasma/plasmoids"),
                Path("/usr/local/share/plasma/plasmoids")]
+
+# Übersetzungen teilt sich das Skript mit dem Widget (contents/locale)
+_ = gettext.translation("plasma_applet_" + WIDGET_ID, WIDGET_SRC / "contents" / "locale",
+                        fallback=True).gettext
 
 
 def find_changeicons():
@@ -108,7 +115,7 @@ def run(*cmd, check=False):
     except FileNotFoundError:
         # Fehlende Hilfsprogramme sollen nicht den ganzen Wechsel abbrechen
         if check:
-            print(f"  ! {cmd[0]} nicht gefunden", file=sys.stderr)
+            print("  ! " + _("{cmd} not found").format(cmd=cmd[0]), file=sys.stderr)
         return ""
     if check and r.returncode != 0:
         print(f"  ! {' '.join(map(str, cmd))}: {(r.stderr or r.stdout).strip()}", file=sys.stderr)
@@ -183,17 +190,18 @@ def set_current(name):
 
 def check_name(name):
     if not name.strip() or "/" in name or name.startswith(".") or name != name.strip():
-        sys.exit(f"Ungültiger Name '{name}' (kein '/', nicht leer, nicht mit '.' anfangen).")
+        sys.exit(_("Invalid name '{name}' (no '/', not empty, must not start with '.').").format(name=name))
 
 
 def require_world(name):
     if not world_dir(name).is_dir():
-        sys.exit(f"Welt '{name}' gibt es nicht. Vorhanden: {', '.join(world_names()) or '-'}")
+        sys.exit(_("World '{name}' does not exist. Available: {worlds}").format(
+            name=name, worlds=", ".join(world_names()) or "-"))
 
 
 def require_current():
     if not current():
-        sys.exit("Der aktuelle Desktop hat noch keinen Namen – erst 'multitheme init NAME'.")
+        sys.exit(_("The current desktop has no name yet – run 'multitheme init NAME' first."))
     return current()
 
 
@@ -207,7 +215,7 @@ def backup_once():
         for rel in tracked_paths():
             if (HOME / rel).exists():
                 tar.add(HOME / rel, arcname=rel)
-    print(f"Sicherung des Originalzustands: {marker}")
+    print(_("Backup of the original state: {path}").format(path=marker))
 
 
 # --- Plasma steuern ---------------------------------------------------------
@@ -216,14 +224,18 @@ def shell_is_service():
     return run("systemctl", "--user", "is-active", SHELL_SERVICE).strip() == "active"
 
 
-def stop_plasma():
+def stop_plasma(announce=True):
+    # Panels verschwinden gleich für ein paar Sekunden – vorher Bescheid sagen,
+    # sonst sieht der Neustart wie ein Absturz aus.
+    if announce:
+        notify("Multitheme", _("Plasma restarts briefly – panels will be back in a few seconds."))
     # plasmashell schreibt beim Beenden sein Layout – erst danach sichern.
     if shell_is_service():
         run("systemctl", "--user", "stop", SHELL_SERVICE, check=True)
         return
     # Plasma ohne systemd-Start
     run("kquitapp6", "plasmashell")
-    for _ in range(40):
+    for _i in range(40):
         if not run("pgrep", "-x", "plasmashell").strip():
             return
         time.sleep(0.25)
@@ -238,7 +250,7 @@ def start_plasma():
         subprocess.Popen(["plasmashell"], start_new_session=True,
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     # Warten, bis die Shell Skripte annimmt (für plasma-apply-lookandfeel)
-    for _ in range(30):
+    for _i in range(30):
         if "multitheme-ok" in plasma_script('print("multitheme-ok")'):
             return
         time.sleep(0.5)
@@ -253,7 +265,11 @@ def read_cfg(root, file, groups, key):
 
 def push_look(root):
     """Look-Einstellungen aus root über die offiziellen Tools anwenden, damit
-    laufende Apps, KWin und der Cursor sofort umschalten."""
+    laufende Apps, KWin und der Cursor sofort umschalten.
+
+    Nur aufrufen, während plasmashell gestoppt ist: die Tools lösen
+    Icon-/Paletten-Signale aus, und eine laufende Shell kann beim Neuladen
+    des Icon-Themes abstürzen."""
     def get(file, groups, key):
         # Was der Look-and-Feel-Standard vorgibt, steht nur in kdedefaults
         return read_cfg(root, file, groups, key) or read_cfg(root, "kdedefaults/" + file, groups, key)
@@ -284,6 +300,11 @@ def push_look(root):
 
 
 def notify_everything():
+    """Laufende Apps und KWin die neuen Configs lesen lassen.
+
+    Ebenfalls nur bei gestoppter plasmashell: die frisch gestartete Shell liest
+    alles beim Start selbst, ein iconChanged mitten im Laden bringt sie zum
+    Absturz (KIconLoader)."""
     run("dbus-send", "--session", "--type=method_call", "--dest=org.kde.KWin",
         "/KWin", "org.kde.KWin.reconfigure")
     for change_type in range(0, 3):  # Palette, Font, Style
@@ -317,7 +338,8 @@ def ensure_widget(name):
 
 def cmd_init(name):
     if current():
-        sys.exit(f"Es gibt schon eine aktuelle Welt ('{current()}'). Neue Welt: 'multitheme new NAME'.")
+        sys.exit(_("There already is a current world ('{name}'). New world: 'multitheme new NAME'.").format(
+            name=current()))
     check_name(name)
     backup_once()
     stop_plasma()
@@ -326,7 +348,7 @@ def cmd_init(name):
     finally:
         start_plasma()
     set_current(name)
-    print(f"Aktueller Desktop ist jetzt die Welt '{name}'.")
+    print(_("The current desktop is now the world '{name}'.").format(name=name))
 
 
 def cmd_save():
@@ -336,33 +358,33 @@ def cmd_save():
         mirror(HOME, world_dir(name))
     finally:
         start_plasma()
-    print(f"Welt '{name}' gesichert.")
+    print(_("World '{name}' saved.").format(name=name))
 
 
 def cmd_switch(name):
     require_world(name)
     cur = require_current()
     backup_once()
-    print(f"Wechsle {cur} → {name} …")
+    print(_("Switching {old} → {new} …").format(old=cur, new=name))
     stop_plasma()
     try:
         mirror(HOME, world_dir(cur))
         push_look(world_dir(name))
         mirror(world_dir(name), HOME)
+        notify_everything()
     finally:
         start_plasma()
     set_current(name)
     ensure_widget(name)
-    notify_everything()
-    print("Fertig. Offene Apps übernehmen manches (z. B. Kvantum-Stil) erst nach einem Neustart.")
+    print(_("Done. Some things (e.g. the Kvantum style) only apply to open apps after a restart."))
 
 
 def cmd_new(name, *opts):
     check_name(name)
     if world_dir(name).exists():
-        sys.exit(f"Welt '{name}' gibt es schon.")
+        sys.exit(_("World '{name}' already exists.").format(name=name))
     cur = require_current()
-    fresh = opts and opts[0] in ("--frisch", "--fresh")
+    fresh = bool(opts) and opts[0] in ("--fresh", "--frisch")
     lnf = opts[1] if fresh and len(opts) > 1 else DEFAULT_FRESH_THEME
     backup_once()
 
@@ -378,54 +400,62 @@ def cmd_new(name, *opts):
     set_current(name)
 
     if fresh:
-        print(f"Setze '{name}' auf ein frisches Plasma mit {lnf} zurück …")
+        print(_("Resetting '{name}' to a fresh Plasma with {theme} …").format(name=name, theme=lnf))
+        # Braucht die laufende Shell (setzt das Layout per Skript zurück)
         run("plasma-apply-lookandfeel", "--apply", lnf, "--resetLayout", check=True)
-        # Look and Feel lässt Akzentfarbe und Icons der alten Welt stehen
-        for key in ("AccentColor", "LastUsedCustomAccentColor"):
-            run("kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", key, "--delete")
-        icons = read_cfg(HOME, "kdedefaults/kdeglobals", ["Icons"], "Theme") or "breeze-dark"
-        run("kwriteconfig6", "--file", "kdeglobals", "--group", "Icons", "--key", "Theme", icons)
-        push_look(HOME)
-        notify_everything()
         time.sleep(2)
+        # Rest bei gestoppter Shell, damit die Icon-/Farb-Signale sie nicht treffen;
+        # das Stoppen schreibt außerdem das frische Layout auf die Platte.
+        stop_plasma(announce=False)
+        try:
+            # Look and Feel lässt Akzentfarbe und Icons der alten Welt stehen
+            for key in ("AccentColor", "LastUsedCustomAccentColor"):
+                run("kwriteconfig6", "--file", "kdeglobals", "--group", "General", "--key", key, "--delete")
+            icons = read_cfg(HOME, "kdedefaults/kdeglobals", ["Icons"], "Theme") or "breeze-dark"
+            run("kwriteconfig6", "--file", "kdeglobals", "--group", "Icons", "--key", "Theme", icons)
+            push_look(HOME)
+            notify_everything()
+            mirror(HOME, world_dir(name))
+        finally:
+            start_plasma()
         ensure_widget(name)
-        cmd_save()
-    print(f"Du bist jetzt in der neuen Welt '{name}'. Richte sie ein – sie wird beim nächsten Wechsel automatisch gesichert.")
+    print(_("You are now in the new world '{name}'. Set it up – it will be saved automatically on the next switch.").format(
+        name=name))
 
 
 def cmd_next():
     names = world_names()
     if len(names) < 2:
-        sys.exit("Es gibt weniger als zwei Welten.")
+        sys.exit(_("There are fewer than two worlds."))
     cur = current()
     nxt = names[(names.index(cur) + 1) % len(names)] if cur in names else names[0]
     cmd_switch(nxt)
-    notify("Welt gewechselt", nxt)
+    notify(_("World switched"), nxt)
 
 
 def cmd_menu():
     cur = current()
     if not cur:
         name = run("kdialog", "--title", "multitheme", "--inputbox",
-                   "Wie soll dein aktueller Desktop heißen?").strip()
+                   _("What should your current desktop be called?")).strip()
         if name:
             cmd_init(name)
         return
     items = []
     for n in world_names():
-        items += [n, f"{n}   ✓ aktiv" if n == cur else n]
-    items += ["__rename__", f"✏️ '{cur}' umbenennen …",
-              "__new__", "➕ Neue Welt (Kopie der aktuellen) …",
-              "__fresh__", "✨ Neue Welt mit frischem Plasma …"]
-    choice = run("kdialog", "--title", "multitheme", "--menu", "Welt auswählen:", *items).strip()
+        items += [n, _("{name}   ✓ active").format(name=n) if n == cur else n]
+    items += ["__rename__", "✏️ " + _("Rename '{name}' …").format(name=cur),
+              "__new__", "➕ " + _("New world (copy of the current one) …"),
+              "__fresh__", "✨ " + _("New world with a fresh Plasma …")]
+    choice = run("kdialog", "--title", "multitheme", "--menu", _("Choose a world:"), *items).strip()
     if choice == "__rename__":
-        name = run("kdialog", "--title", "multitheme", "--inputbox", "Neuer Name:", cur).strip()
+        name = run("kdialog", "--title", "multitheme", "--inputbox", _("New name:"), cur).strip()
         if name and name != cur:
             cmd_rename(cur, name)
     elif choice in ("__new__", "__fresh__"):
-        name = run("kdialog", "--title", "multitheme", "--inputbox", "Name der neuen Welt:").strip()
+        name = run("kdialog", "--title", "multitheme", "--inputbox", _("Name of the new world:")).strip()
         if name:
-            cmd_new(name, *(["--frisch"] if choice == "__fresh__" else []))
+            cmd_new(name, *(["--fresh"] if choice == "__fresh__" else []))
     elif choice and choice != cur:
         cmd_switch(choice)
 
@@ -440,19 +470,19 @@ def cmd_rename(old, new):
     require_world(old)
     check_name(new)
     if world_dir(new).exists():
-        sys.exit(f"Welt '{new}' gibt es schon.")
+        sys.exit(_("World '{name}' already exists.").format(name=new))
     world_dir(old).rename(world_dir(new))
     if current() == old:
         set_current(new)
-    print(f"Welt '{old}' heißt jetzt '{new}'.")
+    print(_("World '{old}' is now called '{new}'.").format(old=old, new=new))
 
 
 def cmd_delete(name):
     require_world(name)
     if name == current():
-        sys.exit("Die aktive Welt kann nicht gelöscht werden – erst wechseln.")
+        sys.exit(_("The active world cannot be deleted – switch first."))
     shutil.rmtree(world_dir(name))
-    print(f"Welt '{name}' gelöscht.")
+    print(_("World '{name}' deleted.").format(name=name))
 
 
 def cmd_install():
@@ -468,26 +498,32 @@ def cmd_install():
     (apps / "multitheme.desktop").write_text(f"""[Desktop Entry]
 Type=Application
 Name=Multitheme
-GenericName=Plasma-Welt wechseln
-Comment=Zwischen kompletten Plasma-Welten umschalten
+GenericName=Switch Plasma world
+GenericName[de]=Plasma-Welt wechseln
+GenericName[fr]=Changer de monde Plasma
+Comment=Switch between complete Plasma worlds
+Comment[de]=Zwischen kompletten Plasma-Welten umschalten
+Comment[fr]=Basculer entre des mondes Plasma complets
 Exec={link} menu
 Icon=preferences-desktop-theme
 Categories=Settings;DesktopSettings;
 Actions=next;
 
 [Desktop Action next]
-Name=Nächste Welt
+Name=Next world
+Name[de]=Nächste Welt
+Name[fr]=Monde suivant
 Exec={link} next
 """)
     run("kbuildsycoca6")
-    print(f"Installiert: {link} und 'Multitheme' im Startmenü.")
+    print(_("Installed: {path} and 'Multitheme' in the application menu.").format(path=link))
 
     # Läuft das Skript schon aus dem installierten Widget, gibt es nichts zu installieren
     installed = HOME / ".local/share/plasma/plasmoids" / WIDGET_ID
     if WIDGET_SRC.is_dir() and WIDGET_SRC != installed.resolve():
         mode = "-u" if widget_installed() else "-i"
         run("kpackagetool6", "-t", "Plasma/Applet", mode, str(WIDGET_SRC), check=True)
-        print("Panel-Widget 'Multitheme' installiert.")
+        print(_("Panel widget 'Multitheme' installed."))
         if current():
             ensure_widget(current())
 
@@ -504,7 +540,8 @@ def main(argv):
         sys.exit(__doc__)
     fn, n_args = cmds[argv[0]]
     if len(argv) - 1 < n_args:
-        sys.exit(f"Aufruf: multitheme {argv[0]} {'ALT NEU' if n_args == 2 else 'NAME'}")
+        sys.exit(_("Usage: multitheme {cmd} {args}").format(
+            cmd=argv[0], args="OLD NEW" if n_args == 2 else "NAME"))
     try:
         fn(*argv[1:])
     except SystemExit as e:

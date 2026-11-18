@@ -2,6 +2,7 @@
 # Baut multitheme.plasmoid – installierbar über
 # „Neue Miniprogramme holen → Aus lokaler Datei installieren“.
 set -e
+python3 "$(dirname "$0")/po/compile.py"
 cd "$(dirname "$0")"
 out="$PWD/multitheme.plasmoid"
 rm -f "$out"

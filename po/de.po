@@ -1,0 +1,157 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: plasma_applet_org.multitheme.switcher\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Active world: %1"
+msgstr "Aktive Welt: %1"
+
+msgid "No world created yet"
+msgstr "Noch keine Welt angelegt"
+
+msgid "Switching to “%1” …"
+msgstr "Wechsle zu „%1“ …"
+
+msgid "Saving current desktop as “%1” …"
+msgstr "Speichere aktuellen Desktop als „%1“ …"
+
+msgid "Creating “%1” …"
+msgstr "Lege „%1“ an …"
+
+msgid "Worlds"
+msgstr "Welten"
+
+msgid "Reload"
+msgstr "Neu laden"
+
+msgid "Apply"
+msgstr "Übernehmen"
+
+msgid "Rename"
+msgstr "Umbenennen"
+
+msgid "No worlds yet"
+msgstr "Noch keine Welten"
+
+msgid "Enter a name below – your current desktop becomes the first world."
+msgstr "Gib unten einen Namen ein – dein jetziger Desktop wird zur ersten Welt."
+
+msgid "Name of the new world"
+msgstr "Name der neuen Welt"
+
+msgid "Name for your current desktop"
+msgstr "Name für deinen jetzigen Desktop"
+
+msgid "Copy"
+msgstr "Kopie"
+
+msgid "Save as first world"
+msgstr "Als erste Welt speichern"
+
+msgid "New world as a copy of the current one"
+msgstr "Neue Welt als Kopie der aktuellen"
+
+msgid "Your current desktop becomes your first world"
+msgstr "Der jetzige Desktop wird deine erste Welt"
+
+msgid "Fresh"
+msgstr "Frisch"
+
+msgid "New world with a fresh default Plasma"
+msgstr "Neue Welt mit frischem Standard-Plasma"
+
+# --- multitheme script (contents/code/multitheme) ---
+
+msgid "{cmd} not found"
+msgstr "{cmd} nicht gefunden"
+
+msgid "Invalid name '{name}' (no '/', not empty, must not start with '.')."
+msgstr "Ungültiger Name '{name}' (kein '/', nicht leer, nicht mit '.' anfangen)."
+
+msgid "World '{name}' does not exist. Available: {worlds}"
+msgstr "Welt '{name}' gibt es nicht. Vorhanden: {worlds}"
+
+msgid "The current desktop has no name yet – run 'multitheme init NAME' first."
+msgstr "Der aktuelle Desktop hat noch keinen Namen – erst 'multitheme init NAME'."
+
+msgid "Backup of the original state: {path}"
+msgstr "Sicherung des Originalzustands: {path}"
+
+msgid "Plasma restarts briefly – panels will be back in a few seconds."
+msgstr "Plasma startet kurz neu – die Leisten sind in ein paar Sekunden wieder da."
+
+msgid "There already is a current world ('{name}'). New world: 'multitheme new NAME'."
+msgstr "Es gibt schon eine aktuelle Welt ('{name}'). Neue Welt: 'multitheme new NAME'."
+
+msgid "The current desktop is now the world '{name}'."
+msgstr "Aktueller Desktop ist jetzt die Welt '{name}'."
+
+msgid "World '{name}' saved."
+msgstr "Welt '{name}' gesichert."
+
+msgid "Switching {old} → {new} …"
+msgstr "Wechsle {old} → {new} …"
+
+msgid "Done. Some things (e.g. the Kvantum style) only apply to open apps after a restart."
+msgstr "Fertig. Offene Apps übernehmen manches (z. B. Kvantum-Stil) erst nach einem Neustart."
+
+msgid "World '{name}' already exists."
+msgstr "Welt '{name}' gibt es schon."
+
+msgid "Resetting '{name}' to a fresh Plasma with {theme} …"
+msgstr "Setze '{name}' auf ein frisches Plasma mit {theme} zurück …"
+
+msgid "You are now in the new world '{name}'. Set it up – it will be saved automatically on the next switch."
+msgstr "Du bist jetzt in der neuen Welt '{name}'. Richte sie ein – sie wird beim nächsten Wechsel automatisch gesichert."
+
+msgid "There are fewer than two worlds."
+msgstr "Es gibt weniger als zwei Welten."
+
+msgid "World switched"
+msgstr "Welt gewechselt"
+
+msgid "What should your current desktop be called?"
+msgstr "Wie soll dein aktueller Desktop heißen?"
+
+msgid "{name}   ✓ active"
+msgstr "{name}   ✓ aktiv"
+
+msgid "Rename '{name}' …"
+msgstr "'{name}' umbenennen …"
+
+msgid "New world (copy of the current one) …"
+msgstr "Neue Welt (Kopie der aktuellen) …"
+
+msgid "New world with a fresh Plasma …"
+msgstr "Neue Welt mit frischem Plasma …"
+
+msgid "Choose a world:"
+msgstr "Welt auswählen:"
+
+msgid "New name:"
+msgstr "Neuer Name:"
+
+msgid "Name of the new world:"
+msgstr "Name der neuen Welt:"
+
+msgid "World '{old}' is now called '{new}'."
+msgstr "Welt '{old}' heißt jetzt '{new}'."
+
+msgid "The active world cannot be deleted – switch first."
+msgstr "Die aktive Welt kann nicht gelöscht werden – erst wechseln."
+
+msgid "World '{name}' deleted."
+msgstr "Welt '{name}' gelöscht."
+
+msgid "Installed: {path} and 'Multitheme' in the application menu."
+msgstr "Installiert: {path} und 'Multitheme' im Startmenü."
+
+msgid "Panel widget 'Multitheme' installed."
+msgstr "Panel-Widget 'Multitheme' installiert."
+
+msgid "Usage: multitheme {cmd} {args}"
+msgstr "Aufruf: multitheme {cmd} {args}"
