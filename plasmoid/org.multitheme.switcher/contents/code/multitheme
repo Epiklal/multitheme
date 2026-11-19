@@ -342,11 +342,10 @@ def cmd_init(name):
             name=current()))
     check_name(name)
     backup_once()
-    stop_plasma()
-    try:
-        mirror(HOME, world_dir(name))
-    finally:
-        start_plasma()
+    # Kein Shell-Neustart: der erste Klick soll nicht wie ein Absturz aussehen.
+    # Ein paar Sekunden altes Layout auf der Platte ist egal – jeder Wechsel
+    # sichert die aktuelle Welt ohnehin erst bei gestoppter Shell neu.
+    mirror(HOME, world_dir(name))
     set_current(name)
     print(_("The current desktop is now the world '{name}'.").format(name=name))
 

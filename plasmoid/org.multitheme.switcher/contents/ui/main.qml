@@ -82,13 +82,19 @@ PlasmoidItem {
 
     function create(name, fresh) {
         name = name.trim()
-        if (!name || busyText) return
+        if (!name || busyText) return false
         if (worlds.length === 0) {
-            // Erster Start: der jetzige Desktop wird zur ersten Welt
-            detached("init " + quote(name), i18n("Saving current desktop as “%1” …", name))
-            return
+            // Erster Start: der jetzige Desktop wird zur ersten Welt. Ohne
+            // Shell-Neustart, also direkt ausführen und danach neu laden.
+            busyText = i18n("Saving current desktop as “%1” …", name)
+            exec(tool + " init " + quote(name), () => {
+                busyText = ""
+                refresh()
+            })
+            return true
         }
         detached("new " + quote(name) + (fresh ? " --fresh" : ""), i18n("Creating “%1” …", name))
+        return true
     }
 
     function rename(oldName, newName) {
@@ -222,7 +228,7 @@ PlasmoidItem {
                 Layout.fillWidth: true
                 placeholderText: root.worlds.length ? i18n("Name of the new world") : i18n("Name for your current desktop")
                 enabled: !root.busyText
-                onAccepted: root.create(text, false)
+                onAccepted: if (root.create(text, false)) text = ""
             }
 
             RowLayout {
@@ -232,7 +238,7 @@ PlasmoidItem {
                     icon.name: root.worlds.length ? "edit-copy" : "document-save"
                     text: root.worlds.length ? i18n("Copy") : i18n("Save as first world")
                     enabled: newName.text.trim() !== "" && !root.busyText
-                    onClicked: root.create(newName.text, false)
+                    onClicked: if (root.create(newName.text, false)) newName.text = ""
                     PlasmaComponents3.ToolTip {
                         text: root.worlds.length ? i18n("New world as a copy of the current one") : i18n("Your current desktop becomes your first world")
                     }
@@ -243,7 +249,7 @@ PlasmoidItem {
                     icon.name: "list-add"
                     text: i18n("Fresh")
                     enabled: newName.text.trim() !== "" && !root.busyText
-                    onClicked: root.create(newName.text, true)
+                    onClicked: if (root.create(newName.text, true)) newName.text = ""
                     PlasmaComponents3.ToolTip { text: i18n("New world with a fresh default Plasma") }
                 }
             }
